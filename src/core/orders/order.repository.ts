@@ -106,7 +106,10 @@ export class OrderRepository {
 	): Promise<OrderDoc | null> {
 		return this.orderModel.findByIdAndUpdate(orderId, payload, {
 			new: true,
-		});
+		})
+			.populate('user', 'name email role active createdAt updatedAt photo id')
+			.populate('orderItems.product', '_id name description image images countInStock isAvailable brand category rating numReviews price discount slug discountedPrice')
+			.populate('shippingAddress');
 	}
 
 	async deleteById(orderId: string): Promise<OrderDoc | null> {
