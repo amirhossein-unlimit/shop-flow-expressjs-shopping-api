@@ -84,35 +84,58 @@ export class OrderRepository {
 	 ****************** MUTATIONS OPERATIONS ******************
 	 ******************************************************** */
 
-	async create(payload: CreateOrderDto, userId: string): Promise<OrderDoc> {
-		// Validate that orderItems exists and is an array
-		if (!payload.orderItems || !Array.isArray(payload.orderItems)) {
-			throw new Error("orderItems is required and must be an array");
-		}
+	// orderRepository.ts
+	async create(
+			payload: CreateOrderDto, 
+			userId: string, 
+			populate?: string | any
+	): Promise<OrderDoc> {
+			if (!payload.orderItems || !Array.isArray(payload.orderItems)) {
+					throw new Error("orderItems is required and must be an array");
+			}
 
-		return this.orderModel.create({
-			...payload,
-			user: userId,
-			orderItems: payload.orderItems.map((item) => ({
-				product: item.productId,
-				qty: item.qty,
-			})),
-		});
+			const newOrder = await this.orderModel.create({
+					...payload,
+					user: userId,
+					orderItems: payload.orderItems.map((item) => ({
+							product: item.productId,
+							qty: item.qty,
+					})),
+			});
+
+			if (populate) {
+					return newOrder.populate(populate);
+			}
+			
+			return newOrder; 
 	}
 
 	async updateById(
-		orderId: string,
-		payload: UpdateOrderDto
+			orderId: string,
+			payload: UpdateOrderDto,
+			populate?: string
 	): Promise<OrderDoc | null> {
-		return this.orderModel.findByIdAndUpdate(orderId, payload, {
-			new: true,
-		})
-			.populate('user', 'name email role active createdAt updatedAt photo id')
-			.populate('orderItems.product', '_id name description image images countInStock isAvailable brand category rating numReviews price discount slug discountedPrice')
-			.populate('shippingAddress');
+			let query = this.orderModel.findByIdAndUpdate(orderId, payload, {
+					new: true,
+			});
+
+			if (populate) {
+					return query.populate(populate).exec();
+			}
+
+			return query.exec();
 	}
 
-	async deleteById(orderId: string): Promise<OrderDoc | null> {
-		return this.orderModel.findByIdAndDelete(orderId);
+	async deleteById(
+			orderId: string, 
+			populate?: string | any
+	): Promise<OrderDoc | null> {
+			let query = this.orderModel.findByIdAndDelete(orderId);
+
+			if (populate) {
+					return query.populate(populate).exec();
+			}
+
+			return query.exec();
 	}
 }

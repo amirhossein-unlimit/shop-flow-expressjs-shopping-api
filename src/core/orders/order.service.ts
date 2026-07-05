@@ -128,8 +128,10 @@ export class OrderService {
 		// check if order belongs to user, if not throw error
 		await this.getOrderById(orderId, userId, role);
 
+		const populateFields = 'user orderItems.product';
+
 		// update order
-		return this.orderRepository.updateById(orderId, updateOrderDto);
+		return this.orderRepository.updateById(orderId, updateOrderDto, populateFields);
 	}
 
 	async updateOrderToPaid(
@@ -199,6 +201,7 @@ export class OrderService {
 		await this.getOrderById(orderId, userId, role);
 
 		// delete order
-		return this.orderRepository.deleteById(orderId);
+    const populateFields = 'user orderItems.product';
+    return this.orderRepository.deleteById(orderId, populateFields);
 	}
 }
